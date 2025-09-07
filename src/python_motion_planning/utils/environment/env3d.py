@@ -43,7 +43,7 @@ class Grid3D(Env3D):
         """
         Initialize grid map.
         """
-        x, y, z= self.x_range, self.y_range, self.z_range
+        x, y, z = self.x_range, self.y_range, self.z_range
         obstacles = set()
 
         # boundary of environment
@@ -57,7 +57,7 @@ class Grid3D(Env3D):
         
         #Fills out the vertical traversal layer, except where you can traverse up or down
         for k in range(z):
-            if k % 2 != 0:
+            if k % 2 == 0:
                 for i in range(x):
                     for j in range(y):
                         if (i,j,k) not in stairs[k]:

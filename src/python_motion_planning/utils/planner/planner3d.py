@@ -22,10 +22,10 @@ class Planner3D(ABC):
         self.plot = Plot(start, goal, env)
 
     def dist(self, node1: Node3D, node2: Node3D) -> float:
-        return math.hypot(node2.x - node1.x, node2.y - node1.y, node2.z - node1.z)
+        return math.hypot(node2.x - node1.x, node2.y - node1.y)
     
     def angle(self, node1: Node3D, node2: Node3D) -> float:
-        return math.atan2(node2.y - node1.y, node2.x - node1.x, node2.z - node1.z)
+        return math.atan2(node2.y - node1.y, node2.x - node1.x)
 
     @abstractmethod
     def plan(self):

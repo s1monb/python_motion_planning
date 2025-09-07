@@ -17,6 +17,14 @@ class SearchFactory(object):
             return Dijkstra3D(**config)
         elif planner_name == "d_star_3d":
             return DStar3D(**config)
+        elif planner_name == "lpa_star_3d":
+            return LPAStar3D(**config)
+        elif planner_name == "gbfs_3d":
+            return GBFS3D(**config)
+        elif planner_name == "voronoi_3d":
+            return VoronoiPlanner3D(**config)
+        elif planner_name == "jps_3d":
+            return JPS3D(**config)
         if planner_name == "a_star":
             return AStar(**config)
         elif planner_name == "dijkstra":
