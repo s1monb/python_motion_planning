@@ -11,6 +11,12 @@ class SearchFactory(object):
         pass
 
     def __call__(self, planner_name, **config):
+        if planner_name == "a_star_3d":
+            return AStar3D(**config)
+        elif planner_name == "dijkstra_3d":
+            return Dijkstra3D(**config)
+        elif planner_name == "d_star_3d":
+            return DStar3D(**config)
         if planner_name == "a_star":
             return AStar(**config)
         elif planner_name == "dijkstra":
