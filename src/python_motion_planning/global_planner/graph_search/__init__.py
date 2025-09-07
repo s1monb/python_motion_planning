@@ -4,7 +4,6 @@ from .dijkstra_3d import Dijkstra3D
 from .d_star_3d import DStar3D
 from .lpa_star_3d import LPAStar3D
 from .gbfs_3d import GBFS3D
-from .voronoi_3d import VoronoiPlanner3D
 from .jps_3d import JPS3D
 
 # 2D
@@ -27,7 +26,6 @@ __all__ = ["AStar3D",
            "DStar3D",
            "LPAStar3D",
            "GBFS3D",
-           "VoronoiPlanner3D",
            "JPS3D",
            "AStar",
            "Dijkstra",

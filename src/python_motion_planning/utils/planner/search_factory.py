@@ -21,8 +21,6 @@ class SearchFactory(object):
             return LPAStar3D(**config)
         elif planner_name == "gbfs_3d":
             return GBFS3D(**config)
-        elif planner_name == "voronoi_3d":
-            return VoronoiPlanner3D(**config)
         elif planner_name == "jps_3d":
             return JPS3D(**config)
         if planner_name == "a_star":

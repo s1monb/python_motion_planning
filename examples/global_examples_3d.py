@@ -25,7 +25,7 @@ if __name__ == '__main__':
     # Så for eksempel siden eksemplet her har 2 etasjer. Har vi 3 mulige lag.
     # Laget med indeks 1 vil være mellom etasjen.
     # Så for å komme seg til lag 0 til lag 2, må du være på 4, 4, 0 eller 3, 3, 0
-    stairs = {0: {}, 2: {(4,4,2),(3,3,2)}, 4: {}}
+    stairs = {0: {}, 1: {}, 2: {(1,5,2)}, 3: {}, 4: {}}
 
 
     start = (1, 1, 1)
@@ -37,9 +37,8 @@ if __name__ == '__main__':
     a_star_planner = search_factory("a_star_3d", start=start, goal=goal, env=env)
     dijkstra_planner = search_factory("dijkstra_3d", start=start, goal=goal, env=env)
     d_star_planner = search_factory("d_star_3d", start=start, goal=goal, env=env)
-    lpa_star_planner = search_factory("lpa_star_3d", start=start, goal=goal, env=env)
     gbfs_planner = search_factory("gbfs_3d", start=start, goal=goal, env=env)
-    # voronoi_planner = search_factory("voronoi_3d", start=start, goal=goal, env=env)
+    lpa_star_planner = search_factory("lpa_star_3d", start=start, goal=goal, env=env)
     jps_planner = search_factory("jps_3d", start=start, goal=goal, env=env)
 
     # animation
@@ -49,11 +48,9 @@ if __name__ == '__main__':
     dijkstra_planner.run()
     print("D* 3D")
     d_star_planner.run()
-    print("LPA* 3D")
-    lpa_star_planner.run()
     print("GBFS 3D")
     gbfs_planner.run()
-    print("Voronoi 3D")
-    # voronoi_planner.run()
+    print("LPA* 3D")
+    lpa_star_planner.run()
     print("JPS 3D")
     jps_planner.run()
