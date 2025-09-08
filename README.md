@@ -199,3 +199,10 @@ Planner      | Version                                                          
 # Acknowledgment
 
 * Our visualization and animation framework of Python Version refers to [https://github.com/zhm-real/PathPlanning](https://github.com/zhm-real/PathPlanning). Thanks sincerely.
+
+
+# Tanker
+
+- Flere resturanter
+- Lange rom
+- Sjekke alle leiligheter

@@ -48,13 +48,12 @@ class JPS3D(AStar3D):
         OPEN = []
         heapq.heappush(OPEN, self.start)
         CLOSED = dict()
-
-        iterations = 20
-
-        while iterations > 0:
-            iterations -= 1
+        iterations = 0
+        while iterations < 20:
+            iterations += 1
             node = heapq.heappop(OPEN)
-            # print(node.current)
+
+            print(node.current)
 
             # exists in CLOSED list
             if node.current in CLOSED:
