@@ -48,12 +48,8 @@ class JPS3D(AStar3D):
         OPEN = []
         heapq.heappush(OPEN, self.start)
         CLOSED = dict()
-        iterations = 0
-        while iterations < 20:
-            iterations += 1
+        while OPEN:
             node = heapq.heappop(OPEN)
-
-            print(node.current)
 
             # exists in CLOSED list
             if node.current in CLOSED:
@@ -119,7 +115,6 @@ class JPS3D(AStar3D):
             
         # if exists forced neighbor
         if self.detectForceNeighbor(new_node, motion):
-            # print("forced neighbor found")
             return new_node
         else:
             return self.jump(new_node, motion)
@@ -139,78 +134,35 @@ class JPS3D(AStar3D):
         x, y, z = node.current
         x_dir, y_dir, z_dir = motion.current
 
-        # horizontal movement (x direction)
-        if x_dir and not y_dir and not z_dir:
-            # Check forced neighbors in same z-plane
+        # horizontal
+        if x_dir and not y_dir:
             if (x, y + 1, z) in self.obstacles and \
                 (x + x_dir, y + 1, z) not in self.obstacles:
                 return True
             if (x, y - 1, z) in self.obstacles and \
                 (x + x_dir, y - 1, z) not in self.obstacles:
                 return True
-            
-            # Check forced neighbors at different z-levels
-            for dz in [-1, 1]:
-                if (x, y + 1, z + dz) in self.obstacles and \
-                    (x + x_dir, y + 1, z + dz) not in self.obstacles:
-                    return True
-                if (x, y - 1, z + dz) in self.obstacles and \
-                    (x + x_dir, y - 1, z + dz) not in self.obstacles:
-                    return True
         
-        # vertical movement (y direction)
-        elif not x_dir and y_dir and not z_dir:
-            # Check forced neighbors in same z-plane
+        # vertical
+        if not x_dir and y_dir:
             if (x + 1, y, z) in self.obstacles and \
                 (x + 1, y + y_dir, z) not in self.obstacles:
                 return True
             if (x - 1, y, z) in self.obstacles and \
                 (x - 1, y + y_dir, z) not in self.obstacles:
                 return True
-            
-            # Check forced neighbors at different z-levels
-            for dz in [-1, 1]:
-                if (x + 1, y, z + dz) in self.obstacles and \
-                    (x + 1, y + y_dir, z + dz) not in self.obstacles:
-                    return True
-                if (x - 1, y, z + dz) in self.obstacles and \
-                    (x - 1, y + y_dir, z + dz) not in self.obstacles:
-                    return True
         
-        # z-axis movement (vertical)
-        elif not x_dir and not y_dir and z_dir:
-            # Check forced neighbors in same z-plane
-            if (x + 1, y, z) in self.obstacles and \
-                (x + 1, y, z + z_dir) not in self.obstacles:
-                return True
-            if (x - 1, y, z) in self.obstacles and \
-                (x - 1, y, z + z_dir) not in self.obstacles:
-                return True
-            if (x, y + 1, z) in self.obstacles and \
-                (x, y + 1, z + z_dir) not in self.obstacles:
-                return True
-            if (x, y - 1, z) in self.obstacles and \
-                (x, y - 1, z + z_dir) not in self.obstacles:
-                return True
-        
-        # diagonal movement (xy plane)
-        elif x_dir and y_dir and not z_dir:
-            # Check forced neighbors in same z-plane
+        # diagonal
+        if x_dir and y_dir:
             if (x - x_dir, y, z) in self.obstacles and \
                 (x - x_dir, y + y_dir, z) not in self.obstacles:
                 return True
             if (x, y - y_dir, z) in self.obstacles and \
                 (x + x_dir, y - y_dir, z) not in self.obstacles:
                 return True
-            
-            # Check forced neighbors at different z-levels
-            for dz in [-1, 1]:
-                if (x - x_dir, y, z + dz) in self.obstacles and \
-                    (x - x_dir, y + y_dir, z + dz) not in self.obstacles:
-                    return True
-                if (x, y - y_dir, z + dz) in self.obstacles and \
-                    (x + x_dir, y - y_dir, z + dz) not in self.obstacles:
-                    return True
+
+        if (x, y, z + 1) not in self.obstacles or (x, y, z - 1) not in self.obstacles:
+            return True
         
         return False
       
