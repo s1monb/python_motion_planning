@@ -39,51 +39,6 @@ def plot_goals(goals, planners, plt, title):
             execution_time = time_end - time_start
             boxplot_data[planner].append(execution_time)
             scatter_data[planner].append((execution_time, cost_value))
-    
-    # Remove outliers using IQR method
-    def remove_outliers(data, multiplier=1.5):
-        """Remove outliers using IQR method"""
-        if len(data) < 4:  # Need at least 4 points for IQR
-            return data
-        
-        data_array = np.array(data)
-        Q1 = np.percentile(data_array, 25)
-        Q3 = np.percentile(data_array, 75)
-        IQR = Q3 - Q1
-        
-        # Define outlier bounds
-        lower_bound = Q1 - multiplier * IQR
-        upper_bound = Q3 + multiplier * IQR
-        
-        # Filter out outliers
-        filtered_data = [x for x in data if lower_bound <= x <= upper_bound]
-        return filtered_data
-    
-    # Filter outliers from timing data
-    filtered_boxplot_data = defaultdict(list)
-    filtered_scatter_data = defaultdict(list)
-    
-    for planner in planners:
-        if planner in boxplot_data and boxplot_data[planner]:
-            # Get timing data for outlier detection
-            times = [item[0] for item in scatter_data[planner]]
-            filtered_times = remove_outliers(times)
-            
-            # Create a set of filtered times for matching
-            filtered_times_set = set(filtered_times)
-            
-            # Filter both boxplot and scatter data
-            for i, time_val in enumerate(boxplot_data[planner]):
-                if time_val in filtered_times_set:
-                    filtered_boxplot_data[planner].append(time_val)
-            
-            for time_val, cost_val in scatter_data[planner]:
-                if time_val in filtered_times_set:
-                    filtered_scatter_data[planner].append((time_val, cost_val))
-    
-    # Use filtered data for plotting
-    boxplot_data = filtered_boxplot_data
-    scatter_data = filtered_scatter_data
 
     # Prepare data for box plot
     data_to_plot = []
@@ -132,21 +87,21 @@ def plot_goals(goals, planners, plt, title):
     
     # Print summary statistics
     print("\n" + "=" * 60)
-    print("TIMING SUMMARY (Outliers Removed)")
+    print("TIMING SUMMARY")
     print("=" * 60)
     for planner in planners:
         if planner in boxplot_data and boxplot_data[planner]:
             times = boxplot_data[planner]
-            print(f"{planner:15s}: Mean={np.mean(times):.4f}s, Std={np.std(times):.4f}s, Min={np.min(times):.4f}s, Max={np.max(times):.4f}s, Count={len(times)}")
+            print(f"{planner:15s}: Mean={np.mean(times):.4f}s, Std={np.std(times):.4f}s, Min={np.min(times):.4f}s, Max={np.max(times):.4f}s")
     
     print("\n" + "=" * 60)
-    print("COST SUMMARY (Outliers Removed)")
+    print("COST SUMMARY")
     print("=" * 60)
     for planner in planners:
         if planner in scatter_data and scatter_data[planner]:
             times, costs = zip(*scatter_data[planner])
             costs = np.array(costs, dtype=float)
-            print(f"{planner:15s}: Mean Cost={np.mean(costs):.4f}, Std Cost={np.std(costs):.4f}, Min Cost={np.min(costs):.4f}, Max Cost={np.max(costs):.4f}, Count={len(costs)}")
+            print(f"{planner:15s}: Mean Cost={np.mean(costs):.4f}, Std Cost={np.std(costs):.4f}, Min Cost={np.min(costs):.4f}, Max Cost={np.max(costs):.4f}")
     
 
 if __name__ == '__main__':
