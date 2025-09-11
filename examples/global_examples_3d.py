@@ -11,14 +11,79 @@ from time import time
 
 def plot_goals(goals, planners, plt, title):
     boxplot_data = defaultdict(list)
+    scatter_data = defaultdict(list)  # Store (time, cost) pairs for each planner
+    
     for goal in goals:
         for planner in planners:
             planner_instance = search_factory(planner, start=start, goal=goal, env=grid)
             time_start = time()
             planner_instance.run()
             time_end = time()
-            # print(f"{planner} time: {time_end - time_start} seconds")
-            boxplot_data[planner].append(time_end - time_start)
+            
+            # Get cost from the planner's plan method
+            cost, path, expand = planner_instance.plan()
+            
+            # Handle different cost return types (some planners return lists, others single values)
+            if isinstance(cost, (list, tuple)) and len(cost) > 0:
+                # If cost is a list/tuple, take the first element or sum if it's a path cost
+                if isinstance(cost[0], (int, float)):
+                    cost_value = sum(cost) if len(cost) > 1 else cost[0]
+                else:
+                    cost_value = cost[0]
+            elif isinstance(cost, (int, float)):
+                cost_value = cost
+            else:
+                # If cost is empty or invalid, skip this data point
+                continue
+            
+            execution_time = time_end - time_start
+            boxplot_data[planner].append(execution_time)
+            scatter_data[planner].append((execution_time, cost_value))
+    
+    # Remove outliers using IQR method
+    def remove_outliers(data, multiplier=1.5):
+        """Remove outliers using IQR method"""
+        if len(data) < 4:  # Need at least 4 points for IQR
+            return data
+        
+        data_array = np.array(data)
+        Q1 = np.percentile(data_array, 25)
+        Q3 = np.percentile(data_array, 75)
+        IQR = Q3 - Q1
+        
+        # Define outlier bounds
+        lower_bound = Q1 - multiplier * IQR
+        upper_bound = Q3 + multiplier * IQR
+        
+        # Filter out outliers
+        filtered_data = [x for x in data if lower_bound <= x <= upper_bound]
+        return filtered_data
+    
+    # Filter outliers from timing data
+    filtered_boxplot_data = defaultdict(list)
+    filtered_scatter_data = defaultdict(list)
+    
+    for planner in planners:
+        if planner in boxplot_data and boxplot_data[planner]:
+            # Get timing data for outlier detection
+            times = [item[0] for item in scatter_data[planner]]
+            filtered_times = remove_outliers(times)
+            
+            # Create a set of filtered times for matching
+            filtered_times_set = set(filtered_times)
+            
+            # Filter both boxplot and scatter data
+            for i, time_val in enumerate(boxplot_data[planner]):
+                if time_val in filtered_times_set:
+                    filtered_boxplot_data[planner].append(time_val)
+            
+            for time_val, cost_val in scatter_data[planner]:
+                if time_val in filtered_times_set:
+                    filtered_scatter_data[planner].append((time_val, cost_val))
+    
+    # Use filtered data for plotting
+    boxplot_data = filtered_boxplot_data
+    scatter_data = filtered_scatter_data
 
     # Prepare data for box plot
     data_to_plot = []
@@ -29,30 +94,59 @@ def plot_goals(goals, planners, plt, title):
             data_to_plot.append(boxplot_data[planner])
             labels.append(planner.replace('_3d', '').replace('_', ' ').title())
     
-    # Create box plot
+    # Create box plot figure
     plt.figure(figsize=(8, 6))
     box_plot = plt.boxplot(data_to_plot, tick_labels=labels, patch_artist=True)
     
-    # Customize colors
+    # Customize colors for box plot
     colors = ['lightblue', 'lightgreen', 'lightcoral', 'lightyellow', 'lightpink', 'lightgray']
     for patch, color in zip(box_plot['boxes'], colors[:len(box_plot['boxes'])]):
         patch.set_facecolor(color)
     
     plt.xlabel("Planning Algorithm", fontsize=12)
     plt.ylabel("Execution Time (seconds)", fontsize=12)
-    plt.title(title, fontsize=14, fontweight='bold')
+    plt.title(f"{title} - Execution Time Comparison", fontsize=14, fontweight='bold')
     plt.xticks(rotation=45, ha='right')
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    
+    # Create scatter plot figure
+    plt.figure(figsize=(8, 6))
+    scatter_colors = ['blue', 'green', 'red', 'orange', 'purple', 'brown']
+    for i, planner in enumerate(planners):
+        if planner in scatter_data and scatter_data[planner]:
+            times, costs = zip(*scatter_data[planner])
+            # Convert to numpy arrays to ensure proper data types
+            times = np.array(times, dtype=float)
+            costs = np.array(costs, dtype=float)
+            plt.scatter(times, costs, c=scatter_colors[i % len(scatter_colors)], 
+                       label=planner.replace('_3d', '').replace('_', ' ').title(), 
+                       alpha=0.7, s=50)
+    
+    plt.xlabel("Execution Time (seconds)", fontsize=12)
+    plt.ylabel("Path Cost", fontsize=12)
+    plt.title(f"{title} - Time vs Cost Analysis", fontsize=14, fontweight='bold')
+    plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     
     # Print summary statistics
     print("\n" + "=" * 60)
-    print("TIMING SUMMARY")
+    print("TIMING SUMMARY (Outliers Removed)")
     print("=" * 60)
     for planner in planners:
         if planner in boxplot_data and boxplot_data[planner]:
             times = boxplot_data[planner]
-            print(f"{planner:15s}: Mean={np.mean(times):.4f}s, Std={np.std(times):.4f}s, Min={np.min(times):.4f}s, Max={np.max(times):.4f}s")
+            print(f"{planner:15s}: Mean={np.mean(times):.4f}s, Std={np.std(times):.4f}s, Min={np.min(times):.4f}s, Max={np.max(times):.4f}s, Count={len(times)}")
+    
+    print("\n" + "=" * 60)
+    print("COST SUMMARY (Outliers Removed)")
+    print("=" * 60)
+    for planner in planners:
+        if planner in scatter_data and scatter_data[planner]:
+            times, costs = zip(*scatter_data[planner])
+            costs = np.array(costs, dtype=float)
+            print(f"{planner:15s}: Mean Cost={np.mean(costs):.4f}, Std Cost={np.std(costs):.4f}, Min Cost={np.min(costs):.4f}, Max Cost={np.max(costs):.4f}, Count={len(costs)}")
     
 
 if __name__ == '__main__':
@@ -73,11 +167,17 @@ if __name__ == '__main__':
     grid = Grid3D(21,21,floors*2+1, stairs, obst)
 
     planners = ["a_star_3d", "dijkstra_3d", "gbfs_3d", "jps_3d"]
-    plot_goals(floor_1_goals, planners, plt, "Start: Floor 1, Goal: Floor 1 (30 random goals)")
-    plot_goals(floor_2_goals, planners, plt, "Start: Floor 1, Goal: Floor 2 (30 random goals)")
-    plot_goals(floor_3_goals, planners, plt, "Start: Floor 1, Goal: Floor 3 (30 random goals)")
-    plot_goals(floor_4_goals, planners, plt, "Start: Floor 1, Goal: Floor 4 (30 random goals)")
-    plot_goals(floor_5_goals, planners, plt, "Start: Floor 1, Goal: Floor 5 (30 random goals)")
-    
+    # med dijkstra
+    plot_goals(floor_1_goals, planners, plt, "Start Floor 1 → Goal Floor 1")
+    # plot_goals(floor_2_goals, planners, plt, "Start Floor 1 → Goal Floor 2")
+    # plot_goals(floor_3_goals, planners, plt, "Start Floor 1 → Goal Floor 3")
+    plot_goals(floor_4_goals, planners, plt, "Start Floor 1 → Goal Floor 4")
+    # plot_goals(floor_5_goals, planners, plt, "Start Floor 1 → Goal Floor 5")
+    # uten dijkstra
+    planners = ["a_star_3d", "gbfs_3d", "jps_3d"]
+    plot_goals(floor_1_goals, planners, plt, "Start Floor 1 → Goal Floor 1")
+    # plot_goals(floor_2_goals, planners, plt, "Start Floor 1 → Goal Floor 2")
+    # plot_goals(floor_3_goals, planners, plt, "Start Floor 1 → Goal Floor 3")
+    plot_goals(floor_4_goals, planners, plt, "Start Floor 1 → Goal Floor 4")
+    # plot_goals(floor_5_goals, planners, plt, "Start Floor 1 → Goal Floor 5")
     plt.show()
-
