@@ -122,7 +122,7 @@ class AStar3D(GraphSearcher3D):
         Running both planning and animation.
         """
         cost, path, expand = self.plan()
-        print(path)
+        # print(path)
         # print(expand)
-        print(cost)
+        # print(cost)
         #self.plot.animation(path, str(self), cost, expand)
