@@ -10,7 +10,8 @@ from time import time
 
 
 def plot_goals(goals, planners, plt, title):
-    boxplot_data = defaultdict(list)
+    time_data = defaultdict(list)
+    path_data = defaultdict(list)
     scatter_data = defaultdict(list)  # Store (time, cost) pairs for each planner
     
     for goal in goals:
@@ -37,7 +38,8 @@ def plot_goals(goals, planners, plt, title):
                 continue
             
             execution_time = time_end - time_start
-            boxplot_data[planner].append(execution_time)
+            time_data[planner].append(execution_time)
+            path_data[planner].append(path)
             scatter_data[planner].append((execution_time, cost_value))
 
     # Prepare data for box plot
@@ -45,11 +47,11 @@ def plot_goals(goals, planners, plt, title):
     labels = []
     
     for planner in planners:
-        if planner in boxplot_data and boxplot_data[planner]:
-            data_to_plot.append(boxplot_data[planner])
+        if planner in time_data and time_data[planner]:
+            data_to_plot.append(time_data[planner])
             labels.append(planner.replace('_3d', '').replace('_', ' ').title())
     
-    # Create box plot figure
+    # Create box plot figure for execution time
     plt.figure(figsize=(8, 6))
     box_plot = plt.boxplot(data_to_plot, tick_labels=labels, patch_artist=True)
     
@@ -61,6 +63,31 @@ def plot_goals(goals, planners, plt, title):
     plt.xlabel("Planning Algorithm", fontsize=12)
     plt.ylabel("Execution Time (seconds)", fontsize=12)
     plt.title(f"{title} - Execution Time Comparison", fontsize=14, fontweight='bold')
+    plt.xticks(rotation=45, ha='right')
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    
+    # Create box plot figure for path cost
+    plt.figure(figsize=(8, 6))
+    cost_data_to_plot = []
+    cost_labels = []
+    
+    for planner in planners:
+        if planner in scatter_data and scatter_data[planner]:
+            times, costs = zip(*scatter_data[planner])
+            costs = np.array(costs, dtype=float)
+            cost_data_to_plot.append(costs)
+            cost_labels.append(planner.replace('_3d', '').replace('_', ' ').title())
+    
+    cost_box_plot = plt.boxplot(cost_data_to_plot, tick_labels=cost_labels, patch_artist=True)
+    
+    # Customize colors for cost box plot
+    for patch, color in zip(cost_box_plot['boxes'], colors[:len(cost_box_plot['boxes'])]):
+        patch.set_facecolor(color)
+    
+    plt.xlabel("Planning Algorithm", fontsize=12)
+    plt.ylabel("Path Cost", fontsize=12)
+    plt.title(f"{title} - Path Cost Comparison", fontsize=14, fontweight='bold')
     plt.xticks(rotation=45, ha='right')
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
@@ -90,8 +117,8 @@ def plot_goals(goals, planners, plt, title):
     print("TIMING SUMMARY")
     print("=" * 60)
     for planner in planners:
-        if planner in boxplot_data and boxplot_data[planner]:
-            times = boxplot_data[planner]
+        if planner in time_data and time_data[planner]:
+            times = time_data[planner]
             print(f"{planner:15s}: Mean={np.mean(times):.4f}s, Std={np.std(times):.4f}s, Min={np.min(times):.4f}s, Max={np.max(times):.4f}s")
     
     print("\n" + "=" * 60)
